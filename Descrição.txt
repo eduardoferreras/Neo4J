@@ -1,0 +1,23 @@
+Este projeto trata a modelagem e implementação de dados para uma plataforma de streaming, utilizando o banco de dados Neo4j.
+
+A estrutura foi desenhada para permitir o mapeamento de relacionamentos complexos entre usuários, conteúdos e criadores, facilitando implementações de inteligência de busca e sistemas de recomendação.
+
+O que foi realizado
+1. Arquitetura do Modelo de Grafo
+O banco foi estruturado em torno de nós (entidades) e arestas (relacionamentos), conforme o diagrama técnico:
+
+Entidades Principais: Usuários (User), Filmes (Movie), Séries (Series), Diretores (Director), Atores (Actor) e Gêneros (Genre).
+
+Conexões Semânticas: Estabelecemos quem assistiu o quê (WATCHED), quem dirigiu a obra (DIRECTED), quem atuou (ACTED_IN) e a qual categoria o título pertence (IN_GENRE).
+
+2. Geração de Massa de Dados
+Para validar a performance e a lógica do banco, criamos um ambiente populado com dados dinâmicos:
+
+Catálogo: Inserção de 15 filmes e 20 séries, cada um devidamente vinculado a diretores, elenco e gêneros específicos.
+
+Base de Usuários: 50 perfis de usuários com atributos variados (idade, localização e tipo de assinatura).
+
+Simulação de Comportamento: Script que simula o histórico de consumo, onde cada usuário "assistiu" aleatoriamente a pelo menos 10 itens, gerando uma rede de mais de 500 interações iniciais.
+
+3. Foco em Capacidade Vetorial
+O projeto foi preparado para servir como a fundação de um Banco de Dados Vetorial. Isso significa que as informações de texto (nomes, classificações e gêneros) estão prontas para serem transformadas em embeddings (vetores numéricos). Com isso, o sistema poderá realizar buscas por similaridade semântica, como: "Encontre filmes de ação com o mesmo estilo de Inception".

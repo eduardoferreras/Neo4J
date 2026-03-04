@@ -1,0 +1,85 @@
+// Script Cypher para criar a base e popularom massa de dados genérica
+
+
+// 1. Limpeza inicial caso exista a base
+MATCH (n) DETACH DELETE n;
+
+// 2. Criação de Gêneros
+UNWIND ["Ação", "Sci-Fi", "Drama", "Terror", "Comédia", "Fantasia", "Suspense"] AS g_name
+MERGE (:Genre {type: g_name});
+
+// 3. Criação de Diretores e Atores (Pessoas)
+UNWIND ["Christopher Nolan", "Steven Spielberg", "Greta Gerwig", "Martin Scorsese", "James Cameron", "Denis Villeneuve", "Quentin Tarantino"] AS d_name
+MERGE (:Director {name: d_name});
+
+UNWIND ["Leonardo DiCaprio", "Cillian Murphy", "Margot Robbie", "Robert De Niro", "Tom Cruise", "Zendaya", "Pedro Pascal", "Timothée Chalamet", "Viola Davis", "Emma Stone"] AS a_name
+MERGE (:Actor {name: a_name});
+
+// 4. Criação de 15 Filmes com conexões
+UNWIND [
+  {n: "Inception", c: "14+", g: "Sci-Fi", d: "Christopher Nolan", a: ["Leonardo DiCaprio", "Cillian Murphy"]},
+  {n: "Interstellar", c: "12+", g: "Sci-Fi", d: "Christopher Nolan", a: ["Cillian Murphy"]},
+  {n: "Oppenheimer", c: "16+", g: "Drama", d: "Christopher Nolan", a: ["Cillian Murphy", "Robert De Niro"]},
+  {n: "Barbie", c: "L", g: "Comédia", d: "Greta Gerwig", a: ["Margot Robbie"]},
+  {n: "The Wolf of Wall Street", c: "18+", g: "Drama", d: "Martin Scorsese", a: ["Leonardo DiCaprio", "Margot Robbie"]},
+  {n: "Avatar", c: "12+", g: "Sci-Fi", d: "James Cameron", a: ["Zendaya"]},
+  {n: "Jaws", c: "14+", g: "Terror", d: "Steven Spielberg", a: ["Robert De Niro"]},
+  {n: "Dune", c: "12+", g: "Sci-Fi", d: "Denis Villeneuve", a: ["Zendaya", "Timothée Chalamet"]},
+  {n: "The Irishman", c: "18+", g: "Drama", d: "Martin Scorsese", a: ["Robert De Niro", "Al Pacino"]},
+  {n: "Top Gun", c: "L", g: "Ação", d: "James Cameron", a: ["Tom Cruise"]},
+  {n: "Poor Things", c: "18+", g: "Comédia", d: "Christopher Nolan", a: ["Emma Stone"]},
+  {n: "The Last of Us Movie", c: "16+", g: "Terror", d: "James Cameron", a: ["Pedro Pascal"]},
+  {n: "Shutter Island", c: "16+", g: "Suspense", d: "Martin Scorsese", a: ["Leonardo DiCaprio"]},
+  {n: "Jurassic Park", c: "L", g: "Sci-Fi", d: "Steven Spielberg", a: ["Robert De Niro"]},
+  {n: "Pulp Fiction", c: "18+", g: "Ação", d: "Quentin Tarantino", a: ["Viola Davis"]}
+] AS m
+CREATE (mov:Movie {name: m.n, classification: m.c})
+WITH mov, m
+MATCH (g:Genre {type: m.g}) MERGE (mov)-[:IN_GENRE]->(g)
+WITH mov, m
+MATCH (dir:Director {name: m.d}) MERGE (dir)-[:DIRECTED]->(mov)
+WITH mov, m
+MATCH (act:Actor) WHERE act.name IN m.a MERGE (act)-[:ACTED_IN]->(mov);
+
+// 5. Criação de 20 Séries com conexões
+UNWIND [
+  {n: "Breaking Bad", c: "18+", g: "Drama", d: "Martin Scorsese"},
+  {n: "Stranger Things", c: "14+", g: "Sci-Fi", d: "Steven Spielberg"},
+  {n: "The Last of Us", c: "16+", g: "Drama", d: "James Cameron"},
+  {n: "The Bear", c: "16+", g: "Drama", d: "Greta Gerwig"},
+  {n: "Succession", c: "16+", g: "Drama", d: "Martin Scorsese"},
+  {n: "The Mandalorian", c: "10+", g: "Sci-Fi", d: "James Cameron"},
+  {n: "The Crown", c: "12+", g: "Drama", d: "Greta Gerwig"},
+  {n: "Black Mirror", c: "18+", g: "Sci-Fi", d: "Christopher Nolan"},
+  {n: "The Office", c: "L", g: "Comédia", d: "Greta Gerwig"},
+  {n: "Game of Thrones", c: "18+", g: "Fantasia", d: "Martin Scorsese"},
+  {n: "Dark", c: "16+", g: "Sci-Fi", d: "Christopher Nolan"},
+  {n: "Mindhunter", c: "18+", g: "Suspense", d: "Martin Scorsese"},
+  {n: "Severance", c: "14+", g: "Sci-Fi", d: "Christopher Nolan"},
+  {n: "Euphoria", c: "18+", g: "Drama", d: "Greta Gerwig"},
+  {n: "The Boys", c: "18+", g: "Ação", d: "James Cameron"},
+  {n: "Friends", c: "L", g: "Comédia", d: "Greta Gerwig"},
+  {n: "Better Call Saul", c: "16+", g: "Drama", d: "Martin Scorsese"},
+  {n: "True Detective", c: "18+", g: "Suspense", d: "James Cameron"},
+  {n: "Chernobyl", c: "16+", g: "Drama", d: "Christopher Nolan"},
+  {n: "Fargo", c: "16+", g: "Suspense", d: "Martin Scorsese"}
+] AS s
+CREATE (ser:Series {name: s.n, classification: s.c})
+WITH ser, s
+MATCH (g:Genre {type: s.g}) MERGE (ser)-[:IN_GENRE]->(g)
+WITH ser, s
+MATCH (dir:Director {name: s.d}) MERGE (dir)-[:DIRECTED]->(ser);
+
+// 6. Criação de 50 Usuários e consumo de 10 itens cada
+UNWIND range(1, 50) AS id
+CREATE (u:User {
+    name: "User_" + id, 
+    substype: CASE WHEN id % 2 = 0 THEN "Premium" ELSE "Free" END,
+    age: 18 + (id % 45),
+    location: CASE WHEN id % 2 = 0 THEN "Brasil" ELSE "Portugal" END
+})
+WITH u
+MATCH (item) WHERE item:Movie OR item:Series
+WITH u, item ORDER BY u.name, rand()
+WITH u, collect(item)[0..9] AS lista
+FOREACH (it IN lista | MERGE (u)-[:WATCHED]->(it));
